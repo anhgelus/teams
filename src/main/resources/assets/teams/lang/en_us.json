@@ -1,0 +1,16 @@
+{
+  "teams.error.invalidteam": "There is no team called %s",
+  "teams.error.duplicateteam": "There is already a team called %s",
+  "teams.error.notinteam": "%s is not in a team",
+  "teams.error.alreadyinteam": "%s is already in a team",
+  "teams.toast.invite": "Team Invite: %s",
+  "teams.toast.respond": "'%s' to reject, '%s' to accept",
+  "teams.playerjoined": "%s has joined your team!",
+  "teams.success.create": "Successfully created team: %s",
+  "teams.success.leave": "You left your team",
+  "teams.success.remove": "You removed the team: %s",
+  "teams.success.invite": "You invited %s to your team",
+  "teams.success.kick": "You kicked %s from their team",
+  "teams.success.info": "Online players in team: %s",
+  "teams.success.list": "List of teams:"
+}

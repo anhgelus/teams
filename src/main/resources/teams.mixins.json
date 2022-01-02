@@ -1,12 +1,14 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "net.fabricmc.example.mixin",
+  "package": "com.t2pellet.teams.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
+    "PlayerMixin"
   ],
   "client": [
-    "ExampleMixin"
+    "InventoryMixin",
+    "TabHudMixin"
   ],
   "injectors": {
     "defaultRequire": 1

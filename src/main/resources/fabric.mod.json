@@ -1,16 +1,15 @@
 {
   "schemaVersion": 1,
-  "id": "modid",
+  "id": "teams",
   "version": "${version}",
 
-  "name": "Example Mod",
+  "name": "Teams Mod",
   "description": "This is an example description! Tell everyone what your mod is about!",
   "authors": [
-    "Me!"
+    "CommodoreThrawn"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "sources": "https://github.com/t2pellet/teams-fabric"
   },
 
   "license": "CC0-1.0",
@@ -19,11 +18,14 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.fabricmc.example.ExampleMod"
+      "com.t2pellet.teams.TeamsMod"
+    ],
+    "client": [
+      "com.t2pellet.teams.client.TeamsModClient"
     ]
   },
   "mixins": [
-    "modid.mixins.json"
+    "teams.mixins.json"
   ],
 
   "depends": {
@@ -31,8 +33,5 @@
     "fabric": "*",
     "minecraft": "1.18.x",
     "java": ">=17"
-  },
-  "suggests": {
-    "another-mod": "*"
   }
 }
