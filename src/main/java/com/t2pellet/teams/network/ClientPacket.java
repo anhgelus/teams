@@ -8,7 +8,7 @@ import net.minecraft.network.PacketByteBuf;
 @Environment(EnvType.CLIENT)
 public abstract class ClientPacket extends Packet {
 
-    protected ClientPacket(MinecraftClient client, PacketByteBuf byteBuf) {
+    public ClientPacket(MinecraftClient client, PacketByteBuf byteBuf) {
         super(byteBuf);
         client.execute(this::execute);
     }

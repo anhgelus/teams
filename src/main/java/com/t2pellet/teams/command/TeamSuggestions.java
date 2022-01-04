@@ -17,7 +17,7 @@ public class TeamSuggestions {
     static final SuggestionProvider<ServerCommandSource> TEAMS = SuggestionProviders.register(new Identifier("teams"), (context, builder) -> {
         Stream<Team> teams = TeamDB.INSTANCE.getTeams();
         teams.forEach(team -> {
-            builder.suggest(team.name);
+            builder.suggest(team.getName());
         });
         return builder.buildFuture();
     });

@@ -10,6 +10,8 @@ import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.t2pellet.teams.core.IHasTeam;
 import com.t2pellet.teams.core.Team;
 import com.t2pellet.teams.core.TeamDB;
+import com.t2pellet.teams.network.PacketHandler;
+import com.t2pellet.teams.network.packets.toasts.TeamInviteSentPacket;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -36,11 +38,11 @@ public class TeamCommand {
                         .executes(TeamCommand::leaveTeam))
                 .then(literal("kick")
                         .then(argument("player", EntityArgumentType.player())
-                            .requires(source -> source.hasPermissionLevel(1))
+                            .requires(source -> source.hasPermissionLevel(2))
                             .executes(TeamCommand::kickPlayer)))
                 .then(literal("remove")
                         .then(argument("name", StringArgumentType.string())
-                            .requires(source -> source.hasPermissionLevel(2))
+                            .requires(source -> source.hasPermissionLevel(3))
                             .suggests(TeamSuggestions.TEAMS)
                             .executes(TeamCommand::removeTeam)))
                 .then(literal("info")
@@ -60,7 +62,6 @@ public class TeamCommand {
         } catch (Team.TeamException e) {
             throw new SimpleCommandExceptionType(new LiteralMessage(e.getMessage())).create();
         }
-        ctx.getSource().sendFeedback(new TranslatableText("teams.success.create", name), false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -73,10 +74,10 @@ public class TeamCommand {
         }
         try {
             TeamDB.INSTANCE.invitePlayerToTeam(newPlayer, team);
+            PacketHandler.INSTANCE.sendTo(new TeamInviteSentPacket(team.getName(), newPlayer.getName().getString()), player);
         } catch (Team.TeamException e) {
             throw new SimpleCommandExceptionType(new LiteralMessage(e.getMessage())).create();
         }
-        ctx.getSource().sendFeedback(new TranslatableText("teams.success.invite", newPlayer.getName().getString()), false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -87,7 +88,6 @@ public class TeamCommand {
         } catch (Team.TeamException e) {
             throw new SimpleCommandExceptionType(new LiteralMessage(e.getMessage())).create();
         }
-        ctx.getSource().sendFeedback(new TranslatableText("teams.success.leave"), false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -98,7 +98,6 @@ public class TeamCommand {
         } catch (Team.TeamException e) {
             throw new SimpleCommandExceptionType(new LiteralMessage(e.getMessage())).create();
         }
-        ctx.getSource().sendFeedback(new TranslatableText("teams.success.kick", otherPlayer.getName().getString()), false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -116,7 +115,7 @@ public class TeamCommand {
     private static int listTeams(CommandContext<ServerCommandSource> ctx) {
         ctx.getSource().sendFeedback(new TranslatableText("teams.success.list"), false);
         TeamDB.INSTANCE.getTeams().forEach(team -> {
-            ctx.getSource().sendFeedback(new LiteralText(team.name), false);
+            ctx.getSource().sendFeedback(new LiteralText(team.getName()), false);
         });
         return Command.SINGLE_SUCCESS;
     }

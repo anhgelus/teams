@@ -1,13 +1,16 @@
 package com.t2pellet.teams.client.ui.hud;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.t2pellet.teams.client.ClientTeam;
+import com.t2pellet.teams.client.core.ClientTeam;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Identifier;
 
+@Environment(EnvType.CLIENT)
 public class CompassOverlay extends DrawableHelper {
 
     private static final int HUD_WIDTH = 182;
@@ -19,7 +22,7 @@ public class CompassOverlay extends DrawableHelper {
     private static final float MAX_SCALE = 0.4f;
     private static final float MIN_ALPHA = 0.4f;
 
-    private MinecraftClient client;
+    private final MinecraftClient client;
 
     public CompassOverlay() {
         this.client = MinecraftClient.getInstance();
@@ -27,14 +30,15 @@ public class CompassOverlay extends DrawableHelper {
 
     public void render(MatrixStack matrices) {
         // Render bar
-        if (ClientTeam.INSTANCE.getTeammates().findAny().isPresent()) {
+        if (ClientTeam.INSTANCE.isInTeam() && !ClientTeam.INSTANCE.isTeamEmpty()) {
             RenderSystem.setShaderTexture(0, GUI_ICONS_TEXTURE);
             var x = (client.getWindow().getScaledWidth() - HUD_WIDTH) / 2;
             var y = (int) (client.getWindow().getScaledHeight() * 0.01) + HUD_HEIGHT;
             drawTexture(matrices, x, y, 0, 74, HUD_WIDTH, HUD_HEIGHT);
         }
         // Render heads
-        ClientTeam.INSTANCE.getTeammates().forEach(teammate -> {
+        for (var teammate : ClientTeam.INSTANCE.getTeammates()) {
+            if (client.player.getUuid().equals(teammate.id)) continue;
             PlayerEntity player = client.world.getPlayerByUuid(teammate.id);
             if (player != null) {
                 double rotationHead = caculateRotationHead();
@@ -42,7 +46,7 @@ public class CompassOverlay extends DrawableHelper {
                 double renderFactor = calculateRenderFactor(player, rotationHead);
                 renderHUDHead(matrices, teammate.skin, scaleFactor, renderFactor);
             }
-        });
+        }
     }
 
     private double caculateRotationHead() {

@@ -2,7 +2,8 @@ package com.t2pellet.teams.core;
 
 import com.t2pellet.teams.TeamsMod;
 import com.t2pellet.teams.network.PacketHandler;
-import com.t2pellet.teams.network.packets.TeamInvitePacket;
+import com.t2pellet.teams.network.packets.TeamDataPacket;
+import com.t2pellet.teams.network.packets.toasts.TeamInvitedPacket;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
@@ -29,10 +30,12 @@ public class TeamDB {
     }
 
     public void addTeam(Team team) throws Team.TeamException {
-        if (teams.containsKey(team.name)) {
+        if (teams.containsKey(team.getName())) {
             throw new Team.TeamException(new TranslatableText("teams.error.duplicateteam"));
         }
-        teams.put(team.name, team);
+        teams.put(team.getName(), team);
+        ServerPlayerEntity[] players = TeamsMod.getServer().getPlayerManager().getPlayerList().toArray(ServerPlayerEntity[]::new);
+        PacketHandler.INSTANCE.sendTo(new TeamDataPacket(TeamDataPacket.Type.ADD, team.name), players);
     }
 
     public Team addTeam(String name, @Nullable ServerPlayerEntity creator) throws Team.TeamException {
@@ -44,12 +47,17 @@ public class TeamDB {
         if (creator != null) {
             team.addPlayer(creator);
         }
+        ServerPlayerEntity[] players = TeamsMod.getServer().getPlayerManager().getPlayerList().toArray(ServerPlayerEntity[]::new);
+        PacketHandler.INSTANCE.sendTo(new TeamDataPacket(TeamDataPacket.Type.ONLINE, team.name), players);
         return team;
     }
 
     public void removeTeam(Team team) {
-        teams.remove(team.name);
+        teams.remove(team.getName());
+        TeamsMod.getScoreboard().removeTeam(TeamsMod.getScoreboard().getTeam(team.getName()));
         team.clear();
+        ServerPlayerEntity[] players = TeamsMod.getServer().getPlayerManager().getPlayerList().toArray(ServerPlayerEntity[]::new);
+        PacketHandler.INSTANCE.sendTo(new TeamDataPacket(TeamDataPacket.Type.REMOVE, team.name), players);
     }
 
     public boolean isEmpty() {
@@ -72,16 +80,13 @@ public class TeamDB {
         if (((IHasTeam) player).hasTeam()) {
             throw new Team.TeamException(new TranslatableText("teams.error.alreadyinteam", player.getName().getString()));
         }
-        PacketHandler.INSTANCE.sendTo(new TeamInvitePacket(team), player);
+        PacketHandler.INSTANCE.sendTo(new TeamInvitedPacket(team), player);
     }
 
     public void addPlayerToTeam(ServerPlayerEntity player, Team team) throws Team.TeamException {
         if (((IHasTeam) player).hasTeam()) {
             throw new Team.TeamException(new TranslatableText("teams.error.alreadyinteam", player.getName()));
         }
-        team.getOnlinePlayers().forEach(p -> {
-            p.sendMessage(new TranslatableText("teams.playerjoined", player.getName().getString()), false);
-        });
         team.addPlayer(player);
     }
 

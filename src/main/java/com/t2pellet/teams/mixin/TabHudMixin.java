@@ -1,6 +1,6 @@
 package com.t2pellet.teams.mixin;
 
-import com.t2pellet.teams.client.ClientTeam;
+import com.t2pellet.teams.client.core.ClientTeam;
 import com.t2pellet.teams.client.TeamsModClient;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -15,7 +15,7 @@ public class TabHudMixin {
 
     @ModifyVariable(method = "render", at = @At("STORE"), ordinal = 9)
     private int onRenderTabList(int p) {
-        if (ClientTeam.INSTANCE.getTeammates().findAny().isPresent()) {
+        if (ClientTeam.INSTANCE.isInTeam()) {
             float scaledHeight = TeamsModClient.client.getWindow().getScaledHeight();
             return (int) (scaledHeight * 0.01) + 12 + 16;
         }

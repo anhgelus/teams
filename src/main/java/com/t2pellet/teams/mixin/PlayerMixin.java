@@ -54,7 +54,7 @@ public class PlayerMixin extends PlayerEntity implements IHasTeam {
 	@Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/nbt/NbtCompound;putBoolean(Ljava/lang/String;Z)V"), method = "writeCustomDataToNbt")
 	private void writeCustomDataToNbt(NbtCompound nbt, CallbackInfo info) {
 		if (team != null) {
-			nbt.putString("playerTeam", team.name);
+			nbt.putString("playerTeam", team.getName());
 		}
 	}
 

@@ -2,7 +2,7 @@ package com.t2pellet.teams.client.ui.hud;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.t2pellet.teams.TeamsMod;
-import com.t2pellet.teams.client.ClientTeam;
+import com.t2pellet.teams.client.core.ClientTeam;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
@@ -12,11 +12,12 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.util.Identifier;
 
 import java.awt.*;
+import java.util.List;
 
 @Environment(EnvType.CLIENT)
 public class StatusOverlay extends DrawableHelper {
 
-    private static final Identifier ICON = new Identifier(TeamsMod.MODID, "textures/gui/icon.png");
+    private static final Identifier ICONS = new Identifier(TeamsMod.MODID, "textures/gui/hudicons.png");
 
     private final MinecraftClient client;
     private int offsetY = 0;
@@ -27,7 +28,15 @@ public class StatusOverlay extends DrawableHelper {
 
     public void render(MatrixStack matrices) {
         offsetY = 0;
-        ClientTeam.INSTANCE.getTeammates().limit(4).forEach(teammate -> renderStatus(matrices, teammate));
+        List<ClientTeam.Teammate> teammates = ClientTeam.INSTANCE.getTeammates();
+        int shown = 0;
+        for (int i = 0; i < teammates.size() && shown < 4; ++i) {
+            if (client.player.getUuid().equals(teammates.get(i).id)) {
+                continue;
+            }
+            renderStatus(matrices, teammates.get(i));
+            ++shown;
+        }
     }
 
     private void renderStatus(MatrixStack matrices, ClientTeam.Teammate teammate) {
@@ -39,13 +48,13 @@ public class StatusOverlay extends DrawableHelper {
 
         // Health
         String health = String.valueOf(Math.round(teammate.getHealth()));
-        RenderSystem.setShaderTexture(0, ICON);
+        RenderSystem.setShaderTexture(0, ICONS);
         drawTexture(matrices, posX + 20, posY, 0, 0, 9, 9);
         drawTextWithShadow(matrices, client.textRenderer, new LiteralText(health), posX + 32, posY, Color.WHITE.getRGB());
 
         // Hunger
         String hunger = String.valueOf(teammate.getHunger());
-        RenderSystem.setShaderTexture(0, ICON);
+        RenderSystem.setShaderTexture(0, ICONS);
         drawTexture(matrices, posX + 46, posY, 9, 0, 9, 9);
         drawTextWithShadow(matrices, client.textRenderer, new LiteralText(hunger), posX + 58, posY, Color.WHITE.getRGB());
 

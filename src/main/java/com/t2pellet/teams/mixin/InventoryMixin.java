@@ -2,10 +2,12 @@ package com.t2pellet.teams.mixin;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.t2pellet.teams.TeamsMod;
+import com.t2pellet.teams.client.TeamsModClient;
+import com.t2pellet.teams.client.core.ClientTeam;
+import com.t2pellet.teams.client.ui.menu.TeamsLonelyScreen;
+import com.t2pellet.teams.client.ui.menu.TeamsMainScreen;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.AbstractInventoryScreen;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.client.gui.widget.TexturedButtonWidget;
@@ -25,6 +27,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(InventoryScreen.class)
 public class InventoryMixin extends AbstractInventoryScreen<PlayerScreenHandler> {
 
+    // TODO : Fix team button position not updating when the recipe book is opened / closed
+
     private static final Identifier TEAMS_BUTTON_TEXTURE = new Identifier(TeamsMod.MODID, "textures/gui/buttonsmall.png");
 
     @Shadow private float mouseX;
@@ -36,9 +40,14 @@ public class InventoryMixin extends AbstractInventoryScreen<PlayerScreenHandler>
 
     @Inject(at = @At("TAIL"), method = "init")
     private void init(CallbackInfo info) {
-        if (!MinecraftClient.getInstance().interactionManager.hasCreativeInventory()) {
-            addDrawableChild(new TexturedButtonWidget(this.x + 157, this.y + 4, 15, 14, 0, 0, 13, TEAMS_BUTTON_TEXTURE, (button) -> {
-                // TODO : Open Teams GUI
+        if (!TeamsModClient.client.interactionManager.hasCreativeInventory()) {
+            addDrawableChild(new TexturedButtonWidget(this.x + backgroundWidth - 19, this.y + 4, 15, 14, 0, 0, 13, TEAMS_BUTTON_TEXTURE, (button) -> {
+                if (ClientTeam.INSTANCE.isInTeam()) {
+                    TeamsModClient.client.setScreen(new TeamsMainScreen(TeamsModClient.client.currentScreen));
+
+                } else {
+                    TeamsModClient.client.setScreen(new TeamsLonelyScreen(TeamsModClient.client.currentScreen));
+                }
             }));
         }
     }

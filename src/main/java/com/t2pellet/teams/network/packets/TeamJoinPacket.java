@@ -16,7 +16,7 @@ public class TeamJoinPacket extends ServerPacket {
     private static final String TEAM_KEY = "teamName";
 
     public TeamJoinPacket(UUID playerId, String team) {
-        tag.putString(ID_KEY, playerId.toString());
+        tag.putUuid(ID_KEY, playerId);
         tag.putString(TEAM_KEY, team);
     }
 
@@ -26,7 +26,7 @@ public class TeamJoinPacket extends ServerPacket {
 
     @Override
     public void execute() {
-        UUID id = UUID.fromString(tag.getString(ID_KEY));
+        UUID id = tag.getUuid(ID_KEY);
         ServerPlayerEntity player = TeamsMod.getServer().getPlayerManager().getPlayer(id);
         String teamName = tag.getString(TEAM_KEY);
         Team team = TeamDB.INSTANCE.getTeam(teamName);

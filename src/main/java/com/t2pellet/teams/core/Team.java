@@ -3,38 +3,58 @@ package com.t2pellet.teams.core;
 import com.mojang.authlib.GameProfile;
 import com.t2pellet.teams.TeamsMod;
 import com.t2pellet.teams.network.PacketHandler;
+import com.t2pellet.teams.network.packets.TeamClearPacket;
 import com.t2pellet.teams.network.packets.TeamDataPacket;
+import com.t2pellet.teams.network.packets.TeamInitPacket;
+import com.t2pellet.teams.network.packets.TeamPlayerDataPacket;
+import com.t2pellet.teams.network.packets.toasts.TeamUpdatePacket;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtString;
 import net.minecraft.scoreboard.AbstractTeam;
-import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Team extends AbstractTeam {
 
-    public String name;
+    public final String name;
     private Set<UUID> players;
     private Map<UUID, ServerPlayerEntity> onlinePlayers;
     private net.minecraft.scoreboard.Team scoreboardTeam;
 
-    private Team(String name) {
+    Team(String name) {
         this.name = name;
         players = new HashSet<>();
         onlinePlayers = new HashMap<>();
         scoreboardTeam = TeamsMod.getScoreboard().getTeam(name);
+        if (scoreboardTeam == null) {
+            scoreboardTeam = TeamsMod.getScoreboard().addTeam(name);
+        }
     }
 
+    public UUID getOwner() {
+        return players.stream().findFirst().orElseThrow();
+    }
+
+    public boolean playerHasPermissions(ServerPlayerEntity player) {
+        return getOwner().equals(player.getUuid()) || player.hasPermissionLevel(2);
+    }
     public Stream<ServerPlayerEntity> getOnlinePlayers() {
         return onlinePlayers.values().stream();
+    }
+
+    public Stream<UUID> getPlayers() {
+        return players.stream();
+    }
+
+    public boolean isEmpty() {
+        return players.isEmpty();
     }
 
     public boolean hasPlayer(ServerPlayerEntity player) {
@@ -45,15 +65,11 @@ public class Team extends AbstractTeam {
         return players.contains(player);
     }
 
-    public boolean isEmpty() {
-        return players.isEmpty();
-    }
-
     public void addPlayer(ServerPlayerEntity player) {
         addPlayer(player.getUuid());
     }
 
-    public void addPlayer(UUID player) {
+    private void addPlayer(UUID player) {
         players.add(player);
         String playerName = getNameFromUUID(player);
         var playerScoreboardTeam = TeamsMod.getScoreboard().getPlayerTeam(playerName);
@@ -62,7 +78,9 @@ public class Team extends AbstractTeam {
         }
         var playerEntity = TeamsMod.getServer().getPlayerManager().getPlayer(player);
         if (playerEntity != null) {
-            playerOnline(playerEntity);
+            PacketHandler.INSTANCE.sendTo(new TeamUpdatePacket(name, playerName, TeamUpdatePacket.Action.JOINED, true), playerEntity);
+            PacketHandler.INSTANCE.sendTo(new TeamUpdatePacket(name, playerName, TeamUpdatePacket.Action.JOINED, false), getOnlinePlayers().toArray(ServerPlayerEntity[]::new));
+            playerOnline(playerEntity, true);
         }
     }
 
@@ -70,7 +88,7 @@ public class Team extends AbstractTeam {
         removePlayer(player.getUuid());
     }
 
-    public void removePlayer(UUID player) {
+    void removePlayer(UUID player) {
         players.remove(player);
         String playerName = getNameFromUUID(player);
         var playerScoreboardTeam = TeamsMod.getScoreboard().getPlayerTeam(playerName);
@@ -79,15 +97,89 @@ public class Team extends AbstractTeam {
         }
         var playerEntity = TeamsMod.getServer().getPlayerManager().getPlayer(player);
         if (playerEntity != null) {
-            playerOffline(playerEntity);
-            PacketHandler.INSTANCE.sendTo(new TeamDataPacket(playerEntity, TeamDataPacket.Type.CLEAR), playerEntity);
+            playerOffline(playerEntity, true);
+            PacketHandler.INSTANCE.sendTo(new TeamClearPacket(), playerEntity);
+            PacketHandler.INSTANCE.sendTo(new TeamUpdatePacket(name, playerName, TeamUpdatePacket.Action.LEFT, true), playerEntity);
+            PacketHandler.INSTANCE.sendTo(new TeamUpdatePacket(name, playerName, TeamUpdatePacket.Action.LEFT, false), getOnlinePlayers().toArray(ServerPlayerEntity[]::new));
             ((IHasTeam) playerEntity).setTeam(null);
         }
     }
 
-    public void clear() {
+    void playerOnline(ServerPlayerEntity player, boolean sendPackets) {
+        onlinePlayers.put(player.getUuid(), player);
+        ((IHasTeam) player).setTeam(this);
+        // Packets
+        if (sendPackets) {
+            PacketHandler.INSTANCE.sendTo(new TeamInitPacket(name, playerHasPermissions(player)), player);
+            if (onlinePlayers.size() == 1) {
+                var players = TeamsMod.getServer().getPlayerManager().getPlayerList().toArray(ServerPlayerEntity[]::new);
+                PacketHandler.INSTANCE.sendTo(new TeamDataPacket(TeamDataPacket.Type.ONLINE, name), players);
+            }
+            var players = getOnlinePlayers().toArray(ServerPlayerEntity[]::new);
+            PacketHandler.INSTANCE.sendTo(new TeamPlayerDataPacket(player, TeamPlayerDataPacket.Type.ADD), players);
+            for (var teammate : players) {
+                PacketHandler.INSTANCE.sendTo(new TeamPlayerDataPacket(teammate, TeamPlayerDataPacket.Type.ADD), player);
+            }
+        }
+    }
+
+    void playerOffline(ServerPlayerEntity player, boolean sendPackets) {
+        onlinePlayers.remove(player.getUuid());
+        // Packets
+        if (sendPackets) {
+            if (isEmpty()) {
+                var players = TeamsMod.getServer().getPlayerManager().getPlayerList().toArray(ServerPlayerEntity[]::new);
+                PacketHandler.INSTANCE.sendTo(new TeamDataPacket(TeamDataPacket.Type.OFFLINE, name), players);
+            }
+            var players = getOnlinePlayers().toArray(ServerPlayerEntity[]::new);
+            PacketHandler.INSTANCE.sendTo(new TeamPlayerDataPacket(player, TeamPlayerDataPacket.Type.REMOVE), players);
+        }
+    }
+
+    void clear() {
         var playersCopy = new ArrayList<>(players);
         playersCopy.forEach(this::removePlayer);
+    }
+
+    private String getNameFromUUID(UUID id) {
+        return TeamsMod.getServer().getUserCache().getByUuid(id).map(GameProfile::getName).orElseThrow();
+    }
+
+    static Team fromNBT(NbtCompound compound) {
+        Team team = new Team.Builder(compound.getString("name"))
+                .setColour(Formatting.byName(compound.getString("colour")))
+                .setCollisionRule(CollisionRule.getRule(compound.getString("collision")))
+                .setDeathMessageVisibilityRule(VisibilityRule.getRule(compound.getString("deathMessages")))
+                .setNameTagVisibilityRule(VisibilityRule.getRule(compound.getString("nameTags")))
+                .setFriendlyFireAllowed(compound.getBoolean("friendlyFire"))
+                .setShowFriendlyInvisibles(compound.getBoolean("showInvisible"))
+                .complete();
+
+        NbtList list = compound.getList("players", NbtElement.STRING_TYPE);
+        for (var elem : list) {
+            team.addPlayer(UUID.fromString(elem.asString()));
+        }
+
+        return team;
+    }
+
+    NbtCompound toNBT() {
+        NbtCompound compound = new NbtCompound();
+        compound.putString("name", name);
+        compound.putString("colour", scoreboardTeam.getColor().getName());
+        compound.putString("collision", scoreboardTeam.getCollisionRule().name);
+        compound.putString("deathMessages", scoreboardTeam.getDeathMessageVisibilityRule().name);
+        compound.putString("nameTags", scoreboardTeam.getNameTagVisibilityRule().name);
+        compound.putBoolean("friendlyFire", scoreboardTeam.isFriendlyFireAllowed());
+        compound.putBoolean("showInvisible", scoreboardTeam.shouldShowFriendlyInvisibles());
+
+        NbtList list = new NbtList();
+        for (var player : players) {
+            list.add(NbtString.of(player.toString()));
+        }
+        compound.put("players", list);
+
+        return compound;
     }
 
     @Override
@@ -161,7 +253,7 @@ public class Team extends AbstractTeam {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Team team && Objects.equals(team.name, this.name);
+        return obj instanceof Team team && Objects.equals(team.getName(), this.name);
     }
 
     @Override
@@ -169,62 +261,6 @@ public class Team extends AbstractTeam {
         return this.name.hashCode();
     }
 
-    void playerOnline(ServerPlayerEntity player) {
-        onlinePlayers.put(player.getUuid(), player);
-        ((IHasTeam) player).setTeam(this);
-        ServerPlayerEntity[] players = getOnlinePlayers().filter(player1 -> !player1.equals(player)).toArray(ServerPlayerEntity[]::new);
-        PacketHandler.INSTANCE.sendTo(new TeamDataPacket(player, TeamDataPacket.Type.ADD), players);
-        for (var teammate : players) {
-            PacketHandler.INSTANCE.sendTo(new TeamDataPacket(teammate, TeamDataPacket.Type.ADD), player);
-        }
-    }
-
-    void playerOffline(ServerPlayerEntity player) {
-        onlinePlayers.remove(player.getUuid());
-        ServerPlayerEntity[] players = getOnlinePlayers().toArray(ServerPlayerEntity[]::new);
-        PacketHandler.INSTANCE.sendTo(new TeamDataPacket(player, TeamDataPacket.Type.REMOVE), players);
-    }
-
-    private String getNameFromUUID(UUID id) {
-        return TeamsMod.getServer().getUserCache().getByUuid(id).map(GameProfile::getName).orElseThrow();
-    }
-
-    static Team fromNBT(NbtCompound compound) {
-        Team team = new Team.Builder(compound.getString("name"))
-                .setColour(Formatting.byName(compound.getString("colour")))
-                .setCollisionRule(CollisionRule.getRule(compound.getString("collision")))
-                .setDeathMessageVisibilityRule(VisibilityRule.getRule(compound.getString("deathMessages")))
-                .setNameTagVisibilityRule(VisibilityRule.getRule(compound.getString("nameTags")))
-                .setFriendlyFireAllowed(compound.getBoolean("friendlyFire"))
-                .setShowFriendlyInvisibles(compound.getBoolean("showInvisible"))
-                .complete();
-
-        NbtList list = compound.getList("players", NbtElement.STRING_TYPE);
-        for (var elem : list) {
-            team.addPlayer(UUID.fromString(elem.asString()));
-        }
-
-        return team;
-    }
-
-    NbtCompound toNBT() {
-        NbtCompound compound = new NbtCompound();
-        compound.putString("name", name);
-        compound.putString("colour", scoreboardTeam.getColor().getName());
-        compound.putString("collision", scoreboardTeam.getCollisionRule().name);
-        compound.putString("deathMessages", scoreboardTeam.getDeathMessageVisibilityRule().name);
-        compound.putString("nameTags", scoreboardTeam.getNameTagVisibilityRule().name);
-        compound.putBoolean("friendlyFire", scoreboardTeam.isFriendlyFireAllowed());
-        compound.putBoolean("showInvisible", scoreboardTeam.shouldShowFriendlyInvisibles());
-
-        NbtList list = new NbtList();
-        for (var player : players) {
-            list.add(NbtString.of(player.toString()));
-        }
-        compound.put("players", list);
-
-        return compound;
-    }
 
     public static class TeamException extends Exception {
         public TeamException(Text message) {
@@ -240,7 +276,7 @@ public class Team extends AbstractTeam {
         private VisibilityRule nameTagVisibilityRule = VisibilityRule.ALWAYS;
         private Formatting colour = Formatting.BOLD;
         private VisibilityRule deathMessageVisibilityRule = VisibilityRule.ALWAYS;
-        private CollisionRule collisionRule = CollisionRule.PUSH_OTHER_TEAMS;
+        private CollisionRule collisionRule = CollisionRule.PUSH_OWN_TEAM;
 
         public Builder(String name) {
             this.name = name;

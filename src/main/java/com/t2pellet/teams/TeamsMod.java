@@ -5,7 +5,7 @@ import com.t2pellet.teams.core.EventHandlers;
 import com.t2pellet.teams.core.TeamDB;
 import com.t2pellet.teams.events.PlayerUpdateEvents;
 import com.t2pellet.teams.network.PacketHandler;
-import com.t2pellet.teams.network.packets.TeamPackets;
+import com.t2pellet.teams.network.TeamPackets;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;

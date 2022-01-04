@@ -5,7 +5,7 @@ import net.minecraft.server.MinecraftServer;
 
 public abstract class ServerPacket extends Packet {
 
-    protected ServerPacket(MinecraftServer server, PacketByteBuf byteBuf) {
+    public ServerPacket(MinecraftServer server, PacketByteBuf byteBuf) {
         super(byteBuf);
         server.execute(this::execute);
     }

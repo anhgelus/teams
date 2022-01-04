@@ -1,6 +1,8 @@
 package com.t2pellet.teams.client;
 
-import com.t2pellet.teams.client.ui.toast.ToastInvite;
+import com.t2pellet.teams.client.core.ClientTeam;
+import com.t2pellet.teams.client.ui.toast.ToastInvited;
+import com.t2pellet.teams.client.ui.toast.ToastRequested;
 import com.t2pellet.teams.network.PacketHandler;
 import com.t2pellet.teams.network.packets.TeamJoinPacket;
 import net.fabricmc.api.EnvType;
@@ -41,18 +43,29 @@ public class TeamsKeys {
 
     public static final TeamsKey ACCEPT = new TeamsKey("key.teams.accept", GLFW.GLFW_KEY_RIGHT_BRACKET, client -> {
         var toastManager = client.getToastManager();
-        ToastInvite toast = toastManager.getToast(ToastInvite.class, Toast.TYPE);
-        if (toast != null) {
-            toast.respond();
-            PacketHandler.INSTANCE.sendToServer(new TeamJoinPacket(client.player.getUuid(), toast.team));
+        ToastInvited invited = toastManager.getToast(ToastInvited.class, Toast.TYPE);
+        if (invited != null) {
+            invited.respond();
+            PacketHandler.INSTANCE.sendToServer(new TeamJoinPacket(client.player.getUuid(), invited.team));
+        } else {
+            ToastRequested requested = toastManager.getToast(ToastRequested.class, Toast.TYPE);
+            if (requested != null) {
+                requested.respond();
+                PacketHandler.INSTANCE.sendToServer(new TeamJoinPacket(requested.id, ClientTeam.INSTANCE.getName()));
+            }
         }
     });
 
     public static final TeamsKey REJECT = new TeamsKey("key.teams.reject", GLFW.GLFW_KEY_LEFT_BRACKET, client -> {
         var toastManager = client.getToastManager();
-        ToastInvite toast = toastManager.getToast(ToastInvite.class, Toast.TYPE);
+        ToastInvited toast = toastManager.getToast(ToastInvited.class, Toast.TYPE);
         if (toast != null) {
             toast.respond();
+        } else {
+            ToastRequested requested = toastManager.getToast(ToastRequested.class, Toast.TYPE);
+            if (requested != null) {
+                requested.respond();
+            }
         }
     });
 
