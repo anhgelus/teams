@@ -1,6 +1,7 @@
 package com.t2pellet.teams.client.ui.toast;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.t2pellet.teams.TeamsMod;
 import com.t2pellet.teams.client.TeamsKeys;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.resource.language.I18n;
@@ -39,5 +40,5 @@ public abstract class TeamToast implements Toast {
         manager.getClient().textRenderer.draw(matrices, title(), 22, 7, Color.WHITE.getRGB());
         manager.getClient().textRenderer.draw(matrices, subTitle(), 22, 18, -16777216);
 
-        return startTime - firstDrawTime < 10000L && team != null ? Visibility.SHOW : Visibility.HIDE;    }
+        return startTime - firstDrawTime < TeamsMod.getConfig().toastDuration * 1000L && team != null ? Visibility.SHOW : Visibility.HIDE;    }
 }

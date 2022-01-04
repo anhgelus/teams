@@ -1,6 +1,7 @@
 package com.t2pellet.teams.client.ui.hud;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.t2pellet.teams.TeamsMod;
 import com.t2pellet.teams.client.core.ClientTeam;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -22,6 +23,7 @@ public class CompassOverlay extends DrawableHelper {
     private static final float MAX_SCALE = 0.4f;
     private static final float MIN_ALPHA = 0.4f;
 
+    public boolean enabled = true;
     private final MinecraftClient client;
 
     public CompassOverlay() {
@@ -29,6 +31,8 @@ public class CompassOverlay extends DrawableHelper {
     }
 
     public void render(MatrixStack matrices) {
+        if (!TeamsMod.getConfig().enableCompassHUD || !enabled) return;;
+
         // Render bar
         if (ClientTeam.INSTANCE.isInTeam() && !ClientTeam.INSTANCE.isTeamEmpty()) {
             RenderSystem.setShaderTexture(0, GUI_ICONS_TEXTURE);

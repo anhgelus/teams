@@ -271,12 +271,12 @@ public class Team extends AbstractTeam {
     public static class Builder {
 
         private final String name;
-        private boolean showFriendlyInvisibles = true;
-        private boolean friendlyFireAllowed = false;
-        private VisibilityRule nameTagVisibilityRule = VisibilityRule.ALWAYS;
-        private Formatting colour = Formatting.BOLD;
-        private VisibilityRule deathMessageVisibilityRule = VisibilityRule.ALWAYS;
-        private CollisionRule collisionRule = CollisionRule.PUSH_OWN_TEAM;
+        private boolean showFriendlyInvisibles = TeamsMod.getConfig().showInvisibleTeammates;
+        private boolean friendlyFireAllowed = TeamsMod.getConfig().friendlyFireEnabled;
+        private VisibilityRule nameTagVisibilityRule = TeamsMod.getConfig().nameTagVisibility;
+        private Formatting colour = TeamsMod.getConfig().colour;
+        private VisibilityRule deathMessageVisibilityRule = TeamsMod.getConfig().deathMessageVisibility;
+        private CollisionRule collisionRule = TeamsMod.getConfig().collisionRule;
 
         public Builder(String name) {
             this.name = name;

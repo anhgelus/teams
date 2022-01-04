@@ -19,6 +19,7 @@ public class StatusOverlay extends DrawableHelper {
 
     private static final Identifier ICONS = new Identifier(TeamsMod.MODID, "textures/gui/hudicons.png");
 
+    public boolean enabled = true;
     private final MinecraftClient client;
     private int offsetY = 0;
 
@@ -40,6 +41,8 @@ public class StatusOverlay extends DrawableHelper {
     }
 
     private void renderStatus(MatrixStack matrices, ClientTeam.Teammate teammate) {
+        if (!TeamsMod.getConfig().enableStatusHUD || !enabled) return;
+
         // Dont render dead players
         if (teammate.getHealth() <= 0) return;
         

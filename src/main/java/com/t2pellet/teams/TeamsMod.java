@@ -1,11 +1,14 @@
 package com.t2pellet.teams;
 
 import com.t2pellet.teams.command.TeamCommand;
+import com.t2pellet.teams.config.TeamsConfig;
 import com.t2pellet.teams.core.EventHandlers;
 import com.t2pellet.teams.core.TeamDB;
 import com.t2pellet.teams.events.PlayerUpdateEvents;
 import com.t2pellet.teams.network.PacketHandler;
 import com.t2pellet.teams.network.TeamPackets;
+import me.shedaniel.autoconfig.AutoConfig;
+import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -27,9 +30,14 @@ public class TeamsMod implements ModInitializer {
 	public static final Logger LOGGER = LogManager.getLogger(MODID);
 	private static MinecraftServer server;
 	private static Scoreboard scoreboard;
+	private static TeamsConfig config;
 
 	public static MinecraftServer getServer() {
 		return server;
+	}
+
+	public static TeamsConfig getConfig() {
+		return config;
 	}
 
 	public static Scoreboard getScoreboard() {
@@ -65,6 +73,9 @@ public class TeamsMod implements ModInitializer {
 				e.printStackTrace();
 			}
 		});
+		// Config registration
+		AutoConfig.register(TeamsConfig.class, JanksonConfigSerializer::new);
+		config = AutoConfig.getConfigHolder(TeamsConfig.class).getConfig();
 		// Packet registration
 		PacketHandler.register(TeamPackets.class);
 		// Command registration

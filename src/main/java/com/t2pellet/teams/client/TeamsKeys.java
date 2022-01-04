@@ -69,9 +69,15 @@ public class TeamsKeys {
         }
     });
 
+    public static final TeamsKey TOGGLE_HUD = new TeamsKey("key.teams.toggle_hud", GLFW.GLFW_KEY_B, client -> {
+        TeamsModClient.compass.enabled = !TeamsModClient.compass.enabled;
+        TeamsModClient.status.enabled = !TeamsModClient.status.enabled;
+    });
+
     static final TeamsKey[] KEYS = {
             ACCEPT,
-            REJECT
+            REJECT,
+            TOGGLE_HUD
     };
 
 }
