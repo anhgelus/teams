@@ -40,7 +40,6 @@ class PacketHandlerImpl implements PacketHandler {
                         TeamsMod.LOGGER.error("Error: Failed to instantiate packet - " + id);
                     }
                 });
-                idMap.put(packetClass, id);
             }
         }
         if (ServerPacket.class.isAssignableFrom(packetClass)) {
@@ -51,8 +50,8 @@ class PacketHandlerImpl implements PacketHandler {
                     TeamsMod.LOGGER.error("Error: Failed to instantiate packet - " + id);
                 }
             });
-            idMap.put(packetClass, id);
         }
+        idMap.put(packetClass, id);
     }
 
     @Override

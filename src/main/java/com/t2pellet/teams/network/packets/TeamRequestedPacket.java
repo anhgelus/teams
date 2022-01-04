@@ -4,6 +4,8 @@ import com.t2pellet.teams.client.TeamsModClient;
 import com.t2pellet.teams.client.core.ClientTeam;
 import com.t2pellet.teams.client.ui.toast.ToastRequested;
 import com.t2pellet.teams.network.ClientPacket;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.network.PacketByteBuf;
 
@@ -24,6 +26,7 @@ public class TeamRequestedPacket extends ClientPacket {
     }
 
     @Override
+    @Environment(EnvType.CLIENT)
     public void execute() {
         String name = tag.getString(NAME_KEY);
         UUID id = tag.getUuid(ID_KEY);

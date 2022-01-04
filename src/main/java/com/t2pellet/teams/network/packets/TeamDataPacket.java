@@ -2,6 +2,8 @@ package com.t2pellet.teams.network.packets;
 
 import com.t2pellet.teams.client.core.ClientTeamDB;
 import com.t2pellet.teams.network.ClientPacket;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
@@ -35,6 +37,7 @@ public class TeamDataPacket extends ClientPacket {
     }
 
     @Override
+    @Environment(EnvType.CLIENT)
     public void execute() {
         Type type = Type.valueOf(tag.getString(TYPE_KEY));
         NbtList nbtList = tag.getList(TEAM_KEY, NbtElement.STRING_TYPE);

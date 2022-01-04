@@ -48,7 +48,7 @@ public class TeamsMod implements ModInitializer {
 	public void onInitialize() {
 		LOGGER.info("Teams mod init!");
 
-		ServerLifecycleEvents.SERVER_STARTING.register(server -> {
+		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			// Get server instance
 			TeamsMod.server = server;
 			TeamsMod.scoreboard = server.getScoreboard();
@@ -63,7 +63,7 @@ public class TeamsMod implements ModInitializer {
 				e.printStackTrace();
 			}
 		});
-		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+		ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
 			// Save teams
 			try {
 				File saveFile = new File(server.getSavePath(WorldSavePath.ROOT).toFile(), "teams.dat");

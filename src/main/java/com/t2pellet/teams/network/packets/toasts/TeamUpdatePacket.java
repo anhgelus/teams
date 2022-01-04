@@ -4,6 +4,8 @@ import com.t2pellet.teams.client.TeamsModClient;
 import com.t2pellet.teams.client.ui.toast.ToastJoin;
 import com.t2pellet.teams.client.ui.toast.ToastLeave;
 import com.t2pellet.teams.network.ClientPacket;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.network.PacketByteBuf;
 
@@ -31,6 +33,7 @@ public class TeamUpdatePacket extends ClientPacket {
     }
 
     @Override
+    @Environment(EnvType.CLIENT)
     public void execute() {
         String team = tag.getString(TEAM_KEY);
         String player = tag.getString(PLAYER_KEY);

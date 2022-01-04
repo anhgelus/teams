@@ -131,6 +131,12 @@ class ClientTeamImpl implements ClientTeam {
         name = "";
         hasPerms = false;
         initialized = false;
+        // Refresh if in TeamsMainScreen, go to TeamsMainScreen if in another TeamsScreen
+        if (client.currentScreen instanceof TeamsMainScreen screen) {
+            screen.refresh();
+        } else if (client.currentScreen instanceof TeamsScreen) {
+            client.setScreen(new TeamsMainScreen(null));
+        }
     }
 
 }

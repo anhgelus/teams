@@ -8,7 +8,9 @@ import com.t2pellet.teams.client.ui.menu.TeamsLonelyScreen;
 import com.t2pellet.teams.client.ui.menu.TeamsMainScreen;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.AbstractInventoryScreen;
+import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.client.gui.widget.TexturedButtonWidget;
 import net.minecraft.client.render.GameRenderer;
@@ -25,7 +27,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Environment(EnvType.CLIENT)
 @Mixin(InventoryScreen.class)
-public class InventoryMixin extends AbstractInventoryScreen<PlayerScreenHandler> {
+public class InventoryMixin extends Screen {
 
     // TODO : Fix team button position not updating when the recipe book is opened / closed
 
@@ -34,14 +36,15 @@ public class InventoryMixin extends AbstractInventoryScreen<PlayerScreenHandler>
     @Shadow private float mouseX;
     @Shadow private float mouseY;
 
-    public InventoryMixin(PlayerScreenHandler screenHandler, PlayerInventory playerInventory, Text text) {
-        super(screenHandler, playerInventory, text);
+    protected InventoryMixin(Text title) {
+        super(title);
     }
 
     @Inject(at = @At("TAIL"), method = "init")
     private void init(CallbackInfo info) {
         if (!TeamsModClient.client.interactionManager.hasCreativeInventory()) {
-            addDrawableChild(new TexturedButtonWidget(this.x + backgroundWidth - 19, this.y + 4, 15, 14, 0, 0, 13, TEAMS_BUTTON_TEXTURE, (button) -> {
+            InventoryAccessor screen = ((InventoryAccessor) ((Object) this));
+            addDrawableChild(new TexturedButtonWidget(screen.getX() + screen.getBackgroundWidth() - 19, screen.getY() + 4, 15, 14, 0, 0, 13, TEAMS_BUTTON_TEXTURE, (button) -> {
                 if (ClientTeam.INSTANCE.isInTeam()) {
                     TeamsModClient.client.setScreen(new TeamsMainScreen(TeamsModClient.client.currentScreen));
 
@@ -50,17 +53,5 @@ public class InventoryMixin extends AbstractInventoryScreen<PlayerScreenHandler>
                 }
             }));
         }
-    }
-
-    // Identical to the original, just needed it so I could extend AbstractInventoryScreen and get access to the x, y fields
-    @Override
-    public void drawBackground(MatrixStack matrices, float delta, int mouseX, int mouseY) {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, BACKGROUND_TEXTURE);
-        int i = this.x;
-        int j = this.y;
-        this.drawTexture(matrices, i, j, 0, 0, this.backgroundWidth, this.backgroundHeight);
-        InventoryScreen.drawEntity(i + 51, j + 75, 30, (float)(i + 51) - this.mouseX, (float)(j + 75 - 50) - this.mouseY, this.client.player);
     }
 }
