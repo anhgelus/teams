@@ -31,6 +31,6 @@ public class TeamsConfig implements ConfigData {
     public boolean enableStatusHUD = true;
     @ConfigEntry.Category("Visual")
     @Comment("How long teams toast notifications should last")
-    public int toastDuration = 10;
+    public int toastDuration = 5;
 
 }

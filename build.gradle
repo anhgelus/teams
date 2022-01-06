@@ -12,6 +12,7 @@ group = project.maven_group
 
 repositories {
 	maven { url "https://maven.shedaniel.me/" }
+	maven { url "https://cursemaven.com" }
 }
 
 dependencies {
@@ -23,6 +24,8 @@ dependencies {
 	modApi("me.shedaniel.cloth:cloth-config-fabric:6.1.48") {
 		exclude(group: "net.fabricmc.fabric-api")
 	}
+
+	modImplementation "curse.maven:authme-356643:3569439"
 }
 
 processResources {

@@ -2,6 +2,7 @@ package com.t2pellet.teams.client.ui.menu;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.t2pellet.teams.TeamsMod;
+import com.t2pellet.teams.client.ui.toast.ToastRequest;
 import com.t2pellet.teams.network.PacketHandler;
 import com.t2pellet.teams.network.packets.TeamRequestPacket;
 import net.minecraft.client.MinecraftClient;
@@ -36,6 +37,7 @@ public class TeamEntry extends DrawableHelper implements Drawable, Element, Sele
         this.y = y;
         this.joinButton = new TexturedButtonWidget(x + WIDTH - 24, y + 8, 8, 8, 24, 190, TEXTURE, button -> {
             PacketHandler.INSTANCE.sendToServer(new TeamRequestPacket(team, client.player.getUuid()));
+            client.getToastManager().add(new ToastRequest(team));
             client.setScreen(null);
         });
     }

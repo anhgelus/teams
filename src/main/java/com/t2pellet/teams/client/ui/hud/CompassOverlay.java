@@ -25,31 +25,51 @@ public class CompassOverlay extends DrawableHelper {
 
     public boolean enabled = true;
     private final MinecraftClient client;
+    private boolean isShowing = false;
 
     public CompassOverlay() {
         this.client = MinecraftClient.getInstance();
     }
 
-    public void render(MatrixStack matrices) {
-        if (!TeamsMod.getConfig().enableCompassHUD || !enabled) return;;
+    public boolean isShowing() {
+        return isShowing;
+    }
 
-        // Render bar
-        if (ClientTeam.INSTANCE.isInTeam() && !ClientTeam.INSTANCE.isTeamEmpty()) {
-            RenderSystem.setShaderTexture(0, GUI_ICONS_TEXTURE);
-            var x = (client.getWindow().getScaledWidth() - HUD_WIDTH) / 2;
-            var y = (int) (client.getWindow().getScaledHeight() * 0.01) + HUD_HEIGHT;
-            drawTexture(matrices, x, y, 0, 74, HUD_WIDTH, HUD_HEIGHT);
+    public void render(MatrixStack matrices) {
+        if (!TeamsMod.getConfig().enableCompassHUD || !enabled) {
+            isShowing = false;
+            return;
         }
+
         // Render heads
+        boolean renderedAnyHead = false;
+        float minScale = 1.0F;
         for (var teammate : ClientTeam.INSTANCE.getTeammates()) {
             if (client.player.getUuid().equals(teammate.id)) continue;
             PlayerEntity player = client.world.getPlayerByUuid(teammate.id);
             if (player != null) {
                 double rotationHead = caculateRotationHead();
                 float scaleFactor = calculateScaleFactor(player);
+                if (scaleFactor < minScale) minScale = scaleFactor;
                 double renderFactor = calculateRenderFactor(player, rotationHead);
                 renderHUDHead(matrices, teammate.skin, scaleFactor, renderFactor);
+                renderedAnyHead = true;
             }
+        }
+
+        // Render bar
+        if (ClientTeam.INSTANCE.isInTeam() && !ClientTeam.INSTANCE.isTeamEmpty() && renderedAnyHead) {
+            RenderSystem.setShaderTexture(0, GUI_ICONS_TEXTURE);
+            var x = (client.getWindow().getScaledWidth() - HUD_WIDTH) / 2;
+            var y = 5 + HUD_HEIGHT / 2;
+            float alpha = (1 - minScale) * (1 - MIN_ALPHA) + MIN_ALPHA;
+            RenderSystem.enableBlend();
+            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, alpha);
+            drawTexture(matrices, x, y, 0, 74, HUD_WIDTH, HUD_HEIGHT);
+            RenderSystem.disableBlend();
+            isShowing = true;
+        } else {
+            isShowing = false;
         }
     }
 
@@ -100,9 +120,8 @@ public class CompassOverlay extends DrawableHelper {
     private void renderHUDHead(MatrixStack matrices, Identifier skin, float scaleFactor, double renderFactor) {
         RenderSystem.setShaderTexture(0, skin);
         int scaledWidth = client.getWindow().getScaledWidth();
-        int scaledHeight = client.getWindow().getScaledHeight();
         int x = (int) (scaledWidth / 2 - HUD_WIDTH / 4 + renderFactor * HUD_WIDTH / 2 + 41);
-        int y = (int) ((scaledHeight * 0.01) + 12);
+        int y = 5 + HUD_HEIGHT + 4;
         float sizeFactor = scaleFactor * (MAX_SCALE - MIN_SCALE) + MIN_SCALE;
         float alphaFactor = (1 - scaleFactor) * (1 - MIN_ALPHA) + MIN_ALPHA;
         matrices.push();
@@ -111,9 +130,9 @@ public class CompassOverlay extends DrawableHelper {
         matrices.scale(sizeFactor, sizeFactor, sizeFactor);
         if (1 - Math.abs(renderFactor) < Math.min(alphaFactor, 0.6f)) {
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, (float) (1 - Math.abs(renderFactor)));
-            drawTexture(matrices, (int) (x / sizeFactor), (int) (y / sizeFactor), 32, 32, 32, 32);
+            drawTexture(matrices, Math.round(x / sizeFactor), Math.round(y / sizeFactor), 32, 32, 32, 32);
         } else {
-            drawTexture(matrices, (int) (x / sizeFactor), (int) (y / sizeFactor), 32, 32, 32, 32);
+            drawTexture(matrices, Math.round(x / sizeFactor), Math.round(y / sizeFactor), 32, 32, 32, 32);
         }
         RenderSystem.disableBlend();
         matrices.pop();
