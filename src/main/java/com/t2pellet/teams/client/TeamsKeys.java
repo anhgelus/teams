@@ -24,13 +24,17 @@ public class TeamsKeys {
         }
 
         private TeamsKey(String keyName, int keyBind, OnPress action) {
-            keyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+            keyBinding = new KeyBinding(
                     keyName,
                     InputUtil.Type.KEYSYM,
                     keyBind,
-                    "category.teams"
-            ));
+                    "key.category.teams"
+            );
             onPress = action;
+        }
+
+        public void register() {
+            KeyBindingHelper.registerKeyBinding(keyBinding);
         }
 
         public String getLocalizedName() {

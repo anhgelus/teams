@@ -26,7 +26,11 @@ public class TeamsModClient implements ClientModInitializer {
             status.render(matrixStack);
             compass.render(matrixStack);
         });
-        // Register Keybinds
+        // Register keybinds
+        for (TeamsKeys.TeamsKey key : TeamsKeys.KEYS) {
+            key.register();
+        }
+        // Handle keybinds
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             for (var key : TeamsKeys.KEYS) {
                 if (key.keyBinding.wasPressed()) {
