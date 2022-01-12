@@ -4,7 +4,9 @@
   "package": "com.t2pellet.teams.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
-    "PlayerMixin"
+    "PlayerMixin",
+    "AdvancementMixin",
+    "AdvancementAccessor"
   ],
   "client": [
     "InventoryMixin",

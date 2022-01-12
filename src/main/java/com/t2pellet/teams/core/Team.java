@@ -2,12 +2,15 @@ package com.t2pellet.teams.core;
 
 import com.mojang.authlib.GameProfile;
 import com.t2pellet.teams.TeamsMod;
+import com.t2pellet.teams.mixin.AdvancementAccessor;
 import com.t2pellet.teams.network.PacketHandler;
 import com.t2pellet.teams.network.packets.TeamClearPacket;
 import com.t2pellet.teams.network.packets.TeamDataPacket;
 import com.t2pellet.teams.network.packets.TeamInitPacket;
 import com.t2pellet.teams.network.packets.TeamPlayerDataPacket;
 import com.t2pellet.teams.network.packets.toasts.TeamUpdatePacket;
+import net.minecraft.advancement.Advancement;
+import net.minecraft.advancement.AdvancementProgress;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
@@ -17,6 +20,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -26,6 +30,7 @@ public class Team extends AbstractTeam {
     public final String name;
     private Set<UUID> players;
     private Map<UUID, ServerPlayerEntity> onlinePlayers;
+    private final Set<Advancement> advancements = new LinkedHashSet<>();
     private net.minecraft.scoreboard.Team scoreboardTeam;
 
     Team(String name) {
@@ -69,40 +74,22 @@ public class Team extends AbstractTeam {
         addPlayer(player.getUuid());
     }
 
-    private void addPlayer(UUID player) {
-        players.add(player);
-        String playerName = getNameFromUUID(player);
-        var playerScoreboardTeam = TeamsMod.getScoreboard().getPlayerTeam(playerName);
-        if (playerScoreboardTeam == null || !playerScoreboardTeam.isEqual(scoreboardTeam)) {
-            TeamsMod.getScoreboard().addPlayerToTeam(playerName, scoreboardTeam);
-        }
-        var playerEntity = TeamsMod.getServer().getPlayerManager().getPlayer(player);
-        if (playerEntity != null) {
-            PacketHandler.INSTANCE.sendTo(new TeamUpdatePacket(name, playerName, TeamUpdatePacket.Action.JOINED, true), playerEntity);
-            PacketHandler.INSTANCE.sendTo(new TeamUpdatePacket(name, playerName, TeamUpdatePacket.Action.JOINED, false), getOnlinePlayers().toArray(ServerPlayerEntity[]::new));
-            playerOnline(playerEntity, true);
-        }
-    }
-
     public void removePlayer(ServerPlayerEntity player) {
         removePlayer(player.getUuid());
     }
 
-    void removePlayer(UUID player) {
-        players.remove(player);
-        String playerName = getNameFromUUID(player);
-        var playerScoreboardTeam = TeamsMod.getScoreboard().getPlayerTeam(playerName);
-        if (playerScoreboardTeam != null && playerScoreboardTeam.isEqual(scoreboardTeam)) {
-            TeamsMod.getScoreboard().removePlayerFromTeam(playerName, scoreboardTeam);
-        }
-        var playerEntity = TeamsMod.getServer().getPlayerManager().getPlayer(player);
-        if (playerEntity != null) {
-            playerOffline(playerEntity, true);
-            PacketHandler.INSTANCE.sendTo(new TeamClearPacket(), playerEntity);
-            PacketHandler.INSTANCE.sendTo(new TeamUpdatePacket(name, playerName, TeamUpdatePacket.Action.LEFT, true), playerEntity);
-            PacketHandler.INSTANCE.sendTo(new TeamUpdatePacket(name, playerName, TeamUpdatePacket.Action.LEFT, false), getOnlinePlayers().toArray(ServerPlayerEntity[]::new));
-            ((IHasTeam) playerEntity).setTeam(null);
-        }
+    public void clear() {
+        var playersCopy = new ArrayList<>(players);
+        playersCopy.forEach(this::removePlayer);
+        advancements.clear();
+    }
+
+    public void addAdvancement(Advancement advancement) {
+        advancements.add(advancement);
+    }
+
+    public Set<Advancement> getAdvancements() {
+        return advancements;
     }
 
     void playerOnline(ServerPlayerEntity player, boolean sendPackets) {
@@ -121,6 +108,13 @@ public class Team extends AbstractTeam {
                 PacketHandler.INSTANCE.sendTo(new TeamPlayerDataPacket(teammate, TeamPlayerDataPacket.Type.ADD), player);
             }
         }
+        // Advancement Sync
+        for (Advancement advancement : getAdvancements()) {
+            AdvancementProgress progress = player.getAdvancementTracker().getProgress(advancement);
+            for (String criterion : progress.getUnobtainedCriteria()) {
+                player.getAdvancementTracker().grantCriterion(advancement, criterion);
+            }
+        }
     }
 
     void playerOffline(ServerPlayerEntity player, boolean sendPackets) {
@@ -136,9 +130,47 @@ public class Team extends AbstractTeam {
         }
     }
 
-    void clear() {
-        var playersCopy = new ArrayList<>(players);
-        playersCopy.forEach(this::removePlayer);
+    private void addPlayer(UUID player) {
+        players.add(player);
+        String playerName = getNameFromUUID(player);
+        // Scoreboard
+        var playerScoreboardTeam = TeamsMod.getScoreboard().getPlayerTeam(playerName);
+        if (playerScoreboardTeam == null || !playerScoreboardTeam.isEqual(scoreboardTeam)) {
+            TeamsMod.getScoreboard().addPlayerToTeam(playerName, scoreboardTeam);
+        }
+        var playerEntity = TeamsMod.getServer().getPlayerManager().getPlayer(player);
+        if (playerEntity != null) {
+            // Packets
+            PacketHandler.INSTANCE.sendTo(new TeamUpdatePacket(name, playerName, TeamUpdatePacket.Action.JOINED, true), playerEntity);
+            PacketHandler.INSTANCE.sendTo(new TeamUpdatePacket(name, playerName, TeamUpdatePacket.Action.JOINED, false), getOnlinePlayers().toArray(ServerPlayerEntity[]::new));
+            playerOnline(playerEntity, true);
+            // Advancement Sync
+            Set<Advancement> advancements = ((AdvancementAccessor) playerEntity.getAdvancementTracker()).getVisibleAdvancements();
+            for (Advancement advancement : advancements) {
+                if (playerEntity.getAdvancementTracker().getProgress(advancement).isDone()) {
+                    addAdvancement(advancement);
+                }
+            }
+        }
+    }
+
+    private void removePlayer(UUID player) {
+        players.remove(player);
+        String playerName = getNameFromUUID(player);
+        // Scoreboard
+        var playerScoreboardTeam = TeamsMod.getScoreboard().getPlayerTeam(playerName);
+        if (playerScoreboardTeam != null && playerScoreboardTeam.isEqual(scoreboardTeam)) {
+            TeamsMod.getScoreboard().removePlayerFromTeam(playerName, scoreboardTeam);
+        }
+        // Packets
+        var playerEntity = TeamsMod.getServer().getPlayerManager().getPlayer(player);
+        if (playerEntity != null) {
+            playerOffline(playerEntity, true);
+            PacketHandler.INSTANCE.sendTo(new TeamClearPacket(), playerEntity);
+            PacketHandler.INSTANCE.sendTo(new TeamUpdatePacket(name, playerName, TeamUpdatePacket.Action.LEFT, true), playerEntity);
+            PacketHandler.INSTANCE.sendTo(new TeamUpdatePacket(name, playerName, TeamUpdatePacket.Action.LEFT, false), getOnlinePlayers().toArray(ServerPlayerEntity[]::new));
+            ((IHasTeam) playerEntity).setTeam(null);
+        }
     }
 
     private String getNameFromUUID(UUID id) {
@@ -155,9 +187,15 @@ public class Team extends AbstractTeam {
                 .setShowFriendlyInvisibles(compound.getBoolean("showInvisible"))
                 .complete();
 
-        NbtList list = compound.getList("players", NbtElement.STRING_TYPE);
-        for (var elem : list) {
+        NbtList players = compound.getList("players", NbtElement.STRING_TYPE);
+        for (var elem : players) {
             team.addPlayer(UUID.fromString(elem.asString()));
+        }
+
+        NbtList advancements = compound.getList("advancement", NbtElement.STRING_TYPE);
+        for (var adv : advancements) {
+            Identifier id = Identifier.tryParse(adv.asString());
+            team.addAdvancement(TeamsMod.getServer().getAdvancementLoader().get(id));
         }
 
         return team;
@@ -173,11 +211,17 @@ public class Team extends AbstractTeam {
         compound.putBoolean("friendlyFire", scoreboardTeam.isFriendlyFireAllowed());
         compound.putBoolean("showInvisible", scoreboardTeam.shouldShowFriendlyInvisibles());
 
-        NbtList list = new NbtList();
+        NbtList playerList = new NbtList();
         for (var player : players) {
-            list.add(NbtString.of(player.toString()));
+            playerList.add(NbtString.of(player.toString()));
         }
-        compound.put("players", list);
+        compound.put("players", playerList);
+
+        NbtList advList = new NbtList();
+        for (var advancement : advancements) {
+            advList.add(NbtString.of(advancement.getId().toString()));
+        }
+        compound.put("advancements", advList);
 
         return compound;
     }

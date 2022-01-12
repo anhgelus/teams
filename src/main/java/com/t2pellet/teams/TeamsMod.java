@@ -4,6 +4,7 @@ import com.t2pellet.teams.command.TeamCommand;
 import com.t2pellet.teams.config.TeamsConfig;
 import com.t2pellet.teams.core.EventHandlers;
 import com.t2pellet.teams.core.TeamDB;
+import com.t2pellet.teams.events.AdvancementEvents;
 import com.t2pellet.teams.events.PlayerUpdateEvents;
 import com.t2pellet.teams.network.PacketHandler;
 import com.t2pellet.teams.network.TeamPackets;
@@ -87,5 +88,6 @@ public class TeamsMod implements ModInitializer {
 		ServerPlayConnectionEvents.DISCONNECT.register(EventHandlers.playerDisconnect);
 		PlayerUpdateEvents.PLAYER_HEALTH_UPDATE.register(EventHandlers.playerHealthUpdate);
 		PlayerUpdateEvents.PLAYER_COPY.register(EventHandlers.playerCopy);
+		AdvancementEvents.ADVANCEMENT_GRANTED.register(EventHandlers.playerAdvancement);
 	}
 }
