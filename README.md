@@ -4,7 +4,9 @@
 A simple mod extending vanilla teams with a management GUI and a HUD showing teammate health / hunger / position
 Team Management GUI
 
-Port of [Teams](https://github.com/t2pellet/Teams) by t2pellet for 1.18 to 1.19
+Port of [Teams](https://github.com/t2pellet/Teams) by t2pellet for 1.18 to 1.19.
+
+Originally under the CC0-1.0 license, now under the GPLv3 license.
 
 ## Features
 * Commands for creating, removing teams, inviting players, kicking players, listing teams, listing players in team, leaving a team
