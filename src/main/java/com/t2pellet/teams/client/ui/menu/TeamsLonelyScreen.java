@@ -5,8 +5,6 @@ import com.t2pellet.teams.client.core.ClientTeamDB;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.LiteralTextContent;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -17,12 +15,12 @@ public class TeamsLonelyScreen extends TeamsScreen {
     static final int WIDTH = 256;
     static final int HEIGHT = 166;
     private static final Identifier TEXTURE = new Identifier(TeamsMod.MODID, "textures/gui/screen_background.png");
-    private static final Text CREATE_TEXT = MutableText.of(new LiteralTextContent("teams.menu.create"));
-    private static final Text LONELY_TEXT = MutableText.of(new LiteralTextContent("teams.menu.lonely.alone"));
-    private static final Text GO_BACK_TEXT = MutableText.of(new LiteralTextContent("teams.menu.return"));
+    private static final Text CREATE_TEXT = Text.translatable("teams.menu.create");
+    private static final Text LONELY_TEXT = Text.translatable("teams.menu.lonely.alone");
+    private static final Text GO_BACK_TEXT = Text.translatable("teams.menu.return");
 
     public TeamsLonelyScreen(Screen parent) {
-        super(parent, MutableText.of(new LiteralTextContent("teams.menu.lonely.title")));
+        super(parent, Text.translatable("teams.menu.lonely.title"));
     }
 
     @Override

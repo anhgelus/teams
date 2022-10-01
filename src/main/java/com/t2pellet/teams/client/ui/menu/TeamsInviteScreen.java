@@ -12,8 +12,8 @@ import net.minecraft.text.Text;
 
 public class TeamsInviteScreen extends TeamsInputScreen {
 
-    private static final Text TITLE_TEXT = MutableText.of(new LiteralTextContent("teams.menu.invite.title"));
-    private static final Text INVITE_TEXT = MutableText.of(new LiteralTextContent("teams.menu.invite.text"));
+    private static final Text TITLE_TEXT = Text.translatable("teams.menu.invite.title");
+    private static final Text INVITE_TEXT = Text.translatable("teams.menu.invite.text");
 
 
     public TeamsInviteScreen(Screen parent) {

@@ -19,9 +19,9 @@ public class TeamsMainScreen extends TeamsScreen {
     static final int WIDTH = 267;
     static final int HEIGHT = 183;
     private static final Identifier TEXTURE = new Identifier(TeamsMod.MODID, "textures/gui/screen_background.png");
-    private static final Text INVITE_TEXT = MutableText.of(new LiteralTextContent(("teams.menu.invite")));
-    private static final Text LEAVE_TEXT = MutableText.of(new LiteralTextContent(("teams.menu.leave")));
-    private static final Text GO_BACK_TEXT = MutableText.of(new LiteralTextContent("teams.menu.return"));
+    private static final Text INVITE_TEXT = Text.translatable("teams.menu.invite");
+    private static final Text LEAVE_TEXT = Text.translatable("teams.menu.leave");
+    private static final Text GO_BACK_TEXT = Text.translatable("teams.menu.return");
 
     public TeamsMainScreen(Screen parent) {
         super(parent, MutableText.of(new LiteralTextContent(("teams.menu.title"))));
