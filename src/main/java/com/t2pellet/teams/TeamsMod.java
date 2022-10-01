@@ -11,7 +11,7 @@ import com.t2pellet.teams.network.TeamPackets;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.nbt.NbtCompound;
@@ -80,7 +80,7 @@ public class TeamsMod implements ModInitializer {
 		// Packet registration
 		PacketHandler.register(TeamPackets.class);
 		// Command registration
-		CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
+		CommandRegistrationCallback.EVENT.register((dispatcher, dedicated, environment) -> {
 			TeamCommand.register(dispatcher);
 		});
 		// Event hooks

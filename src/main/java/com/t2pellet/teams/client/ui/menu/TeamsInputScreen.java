@@ -4,15 +4,16 @@ import com.t2pellet.teams.TeamsMod;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.text.LiteralTextContent;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 
 public abstract class TeamsInputScreen extends TeamsScreen {
 
     private static final Identifier TEXTURE = new Identifier(TeamsMod.MODID, "textures/gui/smaller_background.png");
-    private static final Text DEFAULT_TEXT = new TranslatableText("teams.menu.input");
-    private static final Text GO_BACK_TEXT = new TranslatableText("teams.menu.return");
+    private static final Text DEFAULT_TEXT = MutableText.of(new LiteralTextContent("teams.menu.input"));
+    private static final Text GO_BACK_TEXT = MutableText.of(new LiteralTextContent("teams.menu.return"));
     private static final int WIDTH = 120;
     private static final int HEIGHT = 110;
 

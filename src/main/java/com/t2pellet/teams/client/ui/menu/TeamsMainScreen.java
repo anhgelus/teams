@@ -8,8 +8,9 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.text.LiteralTextContent;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 
 @Environment(EnvType.CLIENT)
@@ -18,12 +19,12 @@ public class TeamsMainScreen extends TeamsScreen {
     static final int WIDTH = 267;
     static final int HEIGHT = 183;
     private static final Identifier TEXTURE = new Identifier(TeamsMod.MODID, "textures/gui/screen_background.png");
-    private static final Text INVITE_TEXT = new TranslatableText("teams.menu.invite");
-    private static final Text LEAVE_TEXT = new TranslatableText("teams.menu.leave");
-    private static final Text GO_BACK_TEXT = new TranslatableText("teams.menu.return");
+    private static final Text INVITE_TEXT = MutableText.of(new LiteralTextContent(("teams.menu.invite")));
+    private static final Text LEAVE_TEXT = MutableText.of(new LiteralTextContent(("teams.menu.leave")));
+    private static final Text GO_BACK_TEXT = MutableText.of(new LiteralTextContent("teams.menu.return"));
 
     public TeamsMainScreen(Screen parent) {
-        super(parent, new TranslatableText("teams.menu.title"));
+        super(parent, MutableText.of(new LiteralTextContent(("teams.menu.title"))));
     }
 
     @Override

@@ -15,8 +15,8 @@ import com.t2pellet.teams.network.packets.toasts.TeamInviteSentPacket;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.LiteralText;
-import net.minecraft.text.TranslatableText;
+import net.minecraft.text.LiteralTextContent;
+import net.minecraft.text.MutableText;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -70,7 +70,7 @@ public class TeamCommand {
         ServerPlayerEntity newPlayer = EntityArgumentType.getPlayer(ctx, "player");
         Team team = ((IHasTeam) player).getTeam();
         if (team == null) {
-            throw new SimpleCommandExceptionType(new TranslatableText("teams.error.notinteam", player.getName().getString())).create();
+            throw new SimpleCommandExceptionType(new LiteralMessage("teams.error.notinteam")).create();
         }
         try {
             TeamDB.INSTANCE.invitePlayerToTeam(newPlayer, team);
@@ -105,17 +105,17 @@ public class TeamCommand {
         String name = ctx.getArgument("name", String.class);
         Team team = TeamDB.INSTANCE.getTeam(name);
         if (team == null) {
-            throw new SimpleCommandExceptionType(new TranslatableText("teams.error.invalidteam", name)).create();
+            throw new SimpleCommandExceptionType(new LiteralMessage("teams.error.invalidteam")).create();
         }
         TeamDB.INSTANCE.removeTeam(team);
-        ctx.getSource().sendFeedback(new TranslatableText("teams.success.remove", name), false);
+        ctx.getSource().sendFeedback(MutableText.of(new LiteralTextContent("teams.success.remove")), false);
         return Command.SINGLE_SUCCESS;
     }
 
     private static int listTeams(CommandContext<ServerCommandSource> ctx) {
-        ctx.getSource().sendFeedback(new TranslatableText("teams.success.list"), false);
+        ctx.getSource().sendFeedback(MutableText.of(new LiteralTextContent("teams.success.list")), false);
         TeamDB.INSTANCE.getTeams().forEach(team -> {
-            ctx.getSource().sendFeedback(new LiteralText(team.getName()), false);
+            ctx.getSource().sendFeedback(MutableText.of(new LiteralTextContent(team.getName())), false);
         });
         return Command.SINGLE_SUCCESS;
     }
@@ -124,9 +124,9 @@ public class TeamCommand {
         String name = ctx.getArgument("name", String.class);
         Team team = TeamDB.INSTANCE.getTeam(name);
         if (team == null) {
-            throw new SimpleCommandExceptionType(new TranslatableText("teams.error.invalidteam", name)).create();
+            throw new SimpleCommandExceptionType(new LiteralMessage("teams.error.invalidteam")).create();
         }
-        ctx.getSource().sendFeedback(new TranslatableText("teams.success.info", name), false);
+        ctx.getSource().sendFeedback(MutableText.of(new LiteralTextContent("teams.success.info")), false);
         team.getOnlinePlayers().forEach(player -> {
             ctx.getSource().sendFeedback(player.getName(), false);
         });

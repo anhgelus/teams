@@ -8,7 +8,8 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.TranslatableText;
+import net.minecraft.text.LiteralTextContent;
+import net.minecraft.text.MutableText;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -31,7 +32,7 @@ public class TeamDB {
 
     public void addTeam(Team team) throws Team.TeamException {
         if (teams.containsKey(team.getName())) {
-            throw new Team.TeamException(new TranslatableText("teams.error.duplicateteam"));
+            throw new Team.TeamException(MutableText.of(new LiteralTextContent("teams.error.duplicateteam")));
         }
         teams.put(team.getName(), team);
         ServerPlayerEntity[] players = TeamsMod.getServer().getPlayerManager().getPlayerList().toArray(ServerPlayerEntity[]::new);
@@ -40,7 +41,7 @@ public class TeamDB {
 
     public Team addTeam(String name, @Nullable ServerPlayerEntity creator) throws Team.TeamException {
         if (creator != null && ((IHasTeam) creator).hasTeam()) {
-            throw new Team.TeamException(new TranslatableText("teams.error.alreadyinteam", creator.getName().getString()));
+            throw new Team.TeamException(MutableText.of(new LiteralTextContent("teams.error.alreadyinteam")));
         }
         Team team = new Team.Builder(name).complete();
         addTeam(team);
@@ -78,14 +79,14 @@ public class TeamDB {
 
     public void invitePlayerToTeam(ServerPlayerEntity player, Team team) throws Team.TeamException {
         if (((IHasTeam) player).hasTeam()) {
-            throw new Team.TeamException(new TranslatableText("teams.error.alreadyinteam", player.getName().getString()));
+            throw new Team.TeamException(MutableText.of(new LiteralTextContent("teams.error.alreadyinteam")));
         }
         PacketHandler.INSTANCE.sendTo(new TeamInvitedPacket(team), player);
     }
 
     public void addPlayerToTeam(ServerPlayerEntity player, Team team) throws Team.TeamException {
         if (((IHasTeam) player).hasTeam()) {
-            throw new Team.TeamException(new TranslatableText("teams.error.alreadyinteam", player.getName()));
+            throw new Team.TeamException(MutableText.of(new LiteralTextContent("teams.error.alreadyinteam")));
         }
         team.addPlayer(player);
     }
@@ -93,7 +94,7 @@ public class TeamDB {
     public void removePlayerFromTeam(ServerPlayerEntity player) throws Team.TeamException {
         Team playerTeam = ((IHasTeam) player).getTeam();
         if (playerTeam == null) {
-            throw new Team.TeamException(new TranslatableText("teams.error.notinteam", player.getName().getString()));
+            throw new Team.TeamException(MutableText.of(new LiteralTextContent("teams.error.notinteam")));
         }
         playerTeam.removePlayer(player);
         if (playerTeam.isEmpty()) {

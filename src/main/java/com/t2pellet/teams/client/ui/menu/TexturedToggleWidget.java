@@ -6,7 +6,7 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -30,7 +30,7 @@ public class TexturedToggleWidget extends ButtonWidget {
     }
 
     public TexturedToggleWidget(int x, int y, int width, int height, int u, int v, int hoveredVOffset, Identifier texture, int textureWidth, int textureHeight, ToggleCondition condition, PressAction pressAction) {
-        this(x, y, width, height, u, v, hoveredVOffset, texture, textureWidth, textureHeight, condition, pressAction, LiteralText.EMPTY);
+        this(x, y, width, height, u, v, hoveredVOffset, texture, textureWidth, textureHeight, condition, pressAction, null);
     }
 
     public TexturedToggleWidget(int x, int y, int width, int height, int u, int v, int hoveredVOffset, Identifier texture, int textureWidth, int textureHeight, ToggleCondition condition, PressAction pressAction, Text text) {

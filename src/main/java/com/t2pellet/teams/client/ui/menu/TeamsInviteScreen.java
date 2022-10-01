@@ -6,13 +6,14 @@ import com.t2pellet.teams.network.PacketHandler;
 import com.t2pellet.teams.network.packets.TeamInvitePacket;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.text.LiteralTextContent;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 
 public class TeamsInviteScreen extends TeamsInputScreen {
 
-    private static final Text TITLE_TEXT = new TranslatableText("teams.menu.invite.title");
-    private static final Text INVITE_TEXT = new TranslatableText("teams.menu.invite.text");
+    private static final Text TITLE_TEXT = MutableText.of(new LiteralTextContent("teams.menu.invite.title"));
+    private static final Text INVITE_TEXT = MutableText.of(new LiteralTextContent("teams.menu.invite.text"));
 
 
     public TeamsInviteScreen(Screen parent) {

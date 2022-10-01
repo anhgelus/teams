@@ -8,7 +8,8 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.LiteralTextContent;
+import net.minecraft.text.MutableText;
 import net.minecraft.util.Identifier;
 
 import java.awt.*;
@@ -53,13 +54,13 @@ public class StatusOverlay extends DrawableHelper {
         String health = String.valueOf(Math.round(teammate.getHealth()));
         RenderSystem.setShaderTexture(0, ICONS);
         drawTexture(matrices, posX + 20, posY, 0, 0, 9, 9);
-        drawTextWithShadow(matrices, client.textRenderer, new LiteralText(health), posX + 32, posY, Color.WHITE.getRGB());
+        drawTextWithShadow(matrices, client.textRenderer, MutableText.of(new LiteralTextContent(health)), posX + 32, posY, Color.WHITE.getRGB());
 
         // Hunger
         String hunger = String.valueOf(teammate.getHunger());
         RenderSystem.setShaderTexture(0, ICONS);
         drawTexture(matrices, posX + 46, posY, 9, 0, 9, 9);
-        drawTextWithShadow(matrices, client.textRenderer, new LiteralText(hunger), posX + 58, posY, Color.WHITE.getRGB());
+        drawTextWithShadow(matrices, client.textRenderer, MutableText.of(new LiteralTextContent(hunger)), posX + 58, posY, Color.WHITE.getRGB());
 
         // Draw skin
         RenderSystem.setShaderTexture(0, teammate.skin);
@@ -69,7 +70,7 @@ public class StatusOverlay extends DrawableHelper {
         matrices.pop();
 
         // Draw name
-        drawTextWithShadow(matrices, client.textRenderer, new LiteralText(teammate.name), (int) Math.round(client.getWindow().getScaledWidth() * 0.002) + 20, posY - 15, Color.WHITE.getRGB());
+        drawTextWithShadow(matrices, client.textRenderer, MutableText.of(new LiteralTextContent(teammate.name)), (int) Math.round(client.getWindow().getScaledWidth() * 0.002) + 20, posY - 15, Color.WHITE.getRGB());
 
         // Update count & offset
         offsetY += 46;

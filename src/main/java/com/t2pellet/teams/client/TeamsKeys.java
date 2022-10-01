@@ -38,7 +38,7 @@ public class TeamsKeys {
         }
 
         public String getLocalizedName() {
-            return keyBinding.getBoundKeyLocalizedText().asString();
+            return keyBinding.getBoundKeyLocalizedText().getString();
         }
 
         final KeyBinding keyBinding;

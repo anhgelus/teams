@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '0.10-SNAPSHOT'
+	id 'fabric-loom' version '0.13.9'
 	id 'maven-publish'
 }
 
@@ -25,7 +25,7 @@ dependencies {
 		exclude(group: "net.fabricmc.fabric-api")
 	}
 
-	modImplementation "curse.maven:authme-356643:3569439"
+	modImplementation "curse.maven:authme-356643:3900095"
 }
 
 processResources {
